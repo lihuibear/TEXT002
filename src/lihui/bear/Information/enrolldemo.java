@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 import static lihui.bear.main.demo.menu;
@@ -95,7 +96,7 @@ public class enrolldemo {
             } else {
                 System.out.println("学生注册失败");
             }
-            jdbcUtils.close(stmt,conn);
+            jdbcUtils.close(stmt, conn);
 //            stmt.close();
 //            conn.close();
         } catch (SQLException e) {
@@ -146,9 +147,30 @@ public class enrolldemo {
         String password = sc.nextLine();
         System.out.println("姓名");
         String name = sc.nextLine();
-        System.out.println("联系方式");
-        long tel = sc.nextLong();
+//        System.out.println("联系方式");
+//        long tel = sc.nextLong();
 
+        System.out.println("输入新的11位电话号码");
+
+        long tel = 0;
+        String tel_str;
+
+        while (true) {
+
+            try {
+                tel = sc.nextLong();
+            } catch (InputMismatchException e) {
+                System.out.println("你输入的不是完全的数字，请重新输入：");
+                sc.nextLine(); // 清除非数字输入，以免进入死循环
+                continue; // 继续下一次循环
+            }
+            tel_str = String.valueOf(tel);
+            if (tel_str.length() != 11) {
+                System.out.println("电话号码必须为11位长度，请重新输入：");
+            } else {
+                break; // 电话号码输入正确，跳出循环
+            }
+        }
         String sql = "INSERT INTO teacher (tid, name, tel, username, password) VALUES (null, ?, ?, ?, ?)";
         try {
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -157,7 +179,6 @@ public class enrolldemo {
             stmt.setString(3, username);
             stmt.setString(4, password);
 
-            // 设置其他教师信息...
             int rows = stmt.executeUpdate();
 
             if (rows > 0) {
@@ -166,7 +187,7 @@ public class enrolldemo {
             } else {
                 System.out.println("教师注册失败");
             }
-            jdbcUtils.close(stmt,conn);
+            jdbcUtils.close(stmt, conn);
 //            stmt.close();
 //            conn.close();
         } catch (SQLException e) {

@@ -3,12 +3,10 @@ package lihui.bear.Information;
 import lihui.bear.utils.jdbcUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import static lihui.bear.Information.logindemo.login;
 import static lihui.bear.Information.logindemo.studentLogin;
 import static lihui.bear.main.demo.menu;
 
@@ -41,7 +39,7 @@ public class Student {
                 case "4":
                     System.out.println("选课情况");
                     findsubject(username, password);
-                    System.out.println("继续选择其他功能或输入其他返回上一级菜单");
+                    studentmenu(username, password);
                     break;
                 case "5":
                     System.out.println("选课");
@@ -62,11 +60,8 @@ public class Student {
         JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         Scanner sc = new Scanner(System.in);
         String sql = "select username 账号,sid id,name 姓名,sex 性别,classname 班级 from student where username = ?";
-
         Map<String, Object> map = template.queryForMap(sql, username);
         System.out.println(map);
-        System.out.println("输入0返回上级目录");
-        String s = sc.nextLine();
         studentmenu(username, password);
     }
 
@@ -124,39 +119,37 @@ public class Student {
         String oldpassword = sc.nextLine();
         int flag = 0;
         JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
-        if (oldpassword.equals(password)) {
-            String sql = "update student set password = ? where username = ?";
-            System.out.println("输入新的密码");
-            String new_password = sc.nextLine();
-            System.out.println("请再次输入新的密码");
-            String new_password2 = sc.nextLine();
-            if (new_password2.equals(new_password)) {
-                template.update(sql, new_password, username);
-                System.out.println("修改成功，请重新登录");
-                studentLogin();
-            } else {
-                System.out.println("您前后输入的密码不一致，重新输入");
-                newpassword(username, password);
-            }
 
-        } else {
+        while (!oldpassword.equals(password) && flag < 3) {
             flag++;
             System.out.println("密码错误，还剩" + (3 - flag) + "次尝试");
             if (flag < 3) {
                 System.out.println("请重新输入学生密码：");
                 oldpassword = sc.nextLine();
-                String sql = "update student set password = ? where username = ?";
-                System.out.println("输入新的密码");
-                String new_password = sc.nextLine();
-                template.update(sql, new_password, username);
-                System.out.println("修改成功，请重新登录");
-                studentLogin();
-            } else {
-                System.out.println("失败次数过多，返回上一界面");
-                studentmenu(username, password);
             }
         }
+
+        if (oldpassword.equals(password)) {
+            System.out.println("请输入新的密码");
+            String new_password = sc.nextLine();
+            System.out.println("请再次输入新的密码");
+            String new_password2 = sc.nextLine();
+
+            if (new_password.equals(new_password2)) {
+                String sql = "update student set password = ? where username = ?";
+                template.update(sql, new_password, username);
+                System.out.println("修改成功，请返回上一界面重新登录");
+                studentLogin();
+            } else {
+                System.out.println("您前后输入的密码不一致，不可修改");
+                studentmenu(username, password);
+            }
+        } else {
+            System.out.println("失败次数过多，返回上一界面");
+            studentLogin();
+        }
     }
+
 
     //选课情况
     public static void findsubject(String username, String password) {
@@ -169,25 +162,17 @@ public class Student {
                 "LEFT JOIN teacher ON subject.tid = teacher.tid " +
                 "WHERE student.username = ?";
 
-        String sql2 = "SELECT subject.suid " +
-                "FROM student " +
-                "LEFT JOIN sandt ON student.sid = sandt.sid " +
-                "LEFT JOIN subject ON `subject`.suid = sandt.suid " +
-                "LEFT JOIN teacher ON subject.tid = teacher.tid " +
-                "WHERE student.username = ?";
-
-        Integer suid = template.queryForObject(sql2, Integer.class, username);
         List<Map<String, Object>> list = template.queryForList(sql, username);
 
-        if (suid == null) {
+        if (list.isEmpty()) {
             System.out.println("你还没有选课");
         } else {
             for (Map<String, Object> stringObjectMap : list) {
                 System.out.println(stringObjectMap);
             }
         }
-    }
 
+    }
 
     //选课
     public static void choicesubject(String username, String password) {

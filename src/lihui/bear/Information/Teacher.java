@@ -3,7 +3,7 @@ package lihui.bear.Information;
 import lihui.bear.utils.jdbcUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.sql.PseudoColumnUsage;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -49,7 +49,7 @@ public class Teacher {
                     break;
                 case "6":
                     System.out.println("修改课程信息");
-                    revisesubject(username,password);
+                    revisesubject(username, password);
                     break;
                 default:
                     menu();
@@ -89,21 +89,28 @@ public class Teacher {
                     String sql2 = "update teacher set tel = ? where username = ?";
                     System.out.println("输入新的11位电话号码");
 
-                    long new_tel;
+                    long new_tel = 0;
                     String new_tel_str;
 
-                    do {
-                        new_tel = sc.nextLong();
-                        new_tel_str = String.valueOf(new_tel);
-
-                        if (new_tel_str.length() != 11) {
-                            System.out.println("电话号码必须为11位长度，请重新输入！");
+                    while (true) {
+                        try {
+                            new_tel = sc.nextLong();
+                        } catch (InputMismatchException e) {
+                            System.out.println("你输入的不是完全的数字，请重新输入：");
+                            sc.nextLine(); // 清除非数字输入，以免进入死循环
+                            continue; // 继续下一次循环
                         }
-                    } while (new_tel_str.length() != 11);
+
+                        new_tel_str = String.valueOf(new_tel);
+                        if (new_tel_str.length() != 11) {
+                            System.out.println("电话号码必须为11位长度，请重新输入：");
+                        } else {
+                            break; // 电话号码输入正确，跳出循环
+                        }
+                    }
 
                     template.update(sql2, new_tel_str, username);
                     System.out.println("修改成功，请继续选择修改的内容或者退出回到上级菜单");
-                    break;
                 default:
                     teachermenu(username, password);
             }
@@ -117,37 +124,34 @@ public class Teacher {
         String oldpassword = sc.nextLine();
         int flag = 0;
         JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
-        if (oldpassword.equals(password)) {
-            String sql = "update teacher set password = ? where username = ?";
-            System.out.println("输入新的密码");
-            String new_password = sc.nextLine();
-            System.out.println("请再次输入新的密码");
-            String new_password2 = sc.nextLine();
-            if (new_password2.equals(new_password)) {
-                template.update(sql, new_password, username);
-                System.out.println("修改成功，请重新登录");
-                teacherLogin();
-            } else {
-                System.out.println("您前后输入的密码不一致，重新输入");
-                newpassword(username, password);
-            }
 
-        } else {
+        while (!oldpassword.equals(password) && flag < 3) {
             flag++;
             System.out.println("密码错误，还剩" + (3 - flag) + "次尝试");
             if (flag < 3) {
                 System.out.println("请重新输入学生密码：");
                 oldpassword = sc.nextLine();
+            }
+        }
+
+        if (oldpassword.equals(password)) {
+            System.out.println("请输入新的密码");
+            String new_password = sc.nextLine();
+            System.out.println("请再次输入新的密码");
+            String new_password2 = sc.nextLine();
+
+            if (new_password.equals(new_password2)) {
                 String sql = "update teacher set password = ? where username = ?";
-                System.out.println("输入新的密码");
-                String new_password = sc.nextLine();
                 template.update(sql, new_password, username);
-                System.out.println("修改成功，请重新登录");
+                System.out.println("修改成功，请返回上一界面重新登录");
                 teacherLogin();
             } else {
-                System.out.println("失败次数过多，返回上一界面");
+                System.out.println("您前后输入的密码不一致，不可修改");
                 teachermenu(username, password);
             }
+        } else {
+            System.out.println("失败次数过多，返回上一界面");
+            teacherLogin();
         }
     }
 
@@ -202,7 +206,7 @@ public class Teacher {
         JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         Scanner sc = new Scanner(System.in);
         System.out.println("您当前有的课有：");
-        findsubject(username,password);
+        findsubject(username, password);
         String sql2 = "SELECT tid FROM teacher WHERE username = ?";
         Integer tid = template.queryForObject(sql2, Integer.class, username);
 
@@ -214,7 +218,7 @@ public class Teacher {
 
         String sql = "UPDATE subject SET suname = ? WHERE tid = ? AND suid = ?";
 
-        template.update(sql,new_name,tid,suid);
+        template.update(sql, new_name, tid, suid);
         teachermenu(username, password);
     }
 
