@@ -27,28 +27,28 @@ public class Student {
             String choice = sc.nextLine();
             switch (choice) {
                 case "1":
-                    System.out.println("ceshi1");
+                    System.out.println("个人信息查询");
                     find(username, password);
                     break;
                 case "2":
-                    System.out.println("ceshi2");
+                    System.out.println("个人信息修改");
                     revise(username, password);
                     break;
                 case "3":
-                    System.out.println("ceshi3");
+                    System.out.println("账号密码修改");
                     newpassword(username, password);
                     break;
                 case "4":
-                    System.out.println("ceshi4");
+                    System.out.println("选课情况");
                     findsubject(username, password);
                     System.out.println("继续选择其他功能或输入其他返回上一级菜单");
                     break;
                 case "5":
-                    System.out.println("ceshi5");
+                    System.out.println("选课");
                     choicesubject(username, password);
                     break;
                 case "6":
-                    System.out.println("ceshi6");
+                    System.out.println("退课");
                     deletesubject(username, password);
                     break;
                 default:
@@ -62,8 +62,7 @@ public class Student {
         JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         Scanner sc = new Scanner(System.in);
         String sql = "select username 账号,sid id,name 姓名,sex 性别,classname 班级 from student where username = ?";
-//        String sql = "select * from student where username = ?";
-//        String username = ;
+
         Map<String, Object> map = template.queryForMap(sql, username);
         System.out.println(map);
         System.out.println("输入0返回上级目录");
@@ -163,42 +162,65 @@ public class Student {
     public static void findsubject(String username, String password) {
         JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
 
-        String sql = "SELECT student.name 学生姓名, subject.suid 课程id,subject.suname 课程,teacher.name 教师姓名 " +
+        String sql = "SELECT student.name 学生姓名, subject.suid 课程id, subject.suname 课程, teacher.name 教师姓名 " +
                 "FROM student " +
-                "JOIN sandt ON student.sid = sandt.sid " +
-                "JOIN subject ON `subject`.suid = sandt.suid " +
-                "JOIN teacher ON subject.tid = teacher.tid " +
+                "LEFT JOIN sandt ON student.sid = sandt.sid " +
+                "LEFT JOIN subject ON `subject`.suid = sandt.suid " +
+                "LEFT JOIN teacher ON subject.tid = teacher.tid " +
                 "WHERE student.username = ?";
+
+        String sql2 = "SELECT subject.suid " +
+                "FROM student " +
+                "LEFT JOIN sandt ON student.sid = sandt.sid " +
+                "LEFT JOIN subject ON `subject`.suid = sandt.suid " +
+                "LEFT JOIN teacher ON subject.tid = teacher.tid " +
+                "WHERE student.username = ?";
+
+        Integer suid = template.queryForObject(sql2, Integer.class, username);
         List<Map<String, Object>> list = template.queryForList(sql, username);
 
-        for (Map<String, Object> stringObjectMap : list) {
-            System.out.println(stringObjectMap);
+        if (suid == null) {
+            System.out.println("你还没有选课");
+        } else {
+            for (Map<String, Object> stringObjectMap : list) {
+                System.out.println(stringObjectMap);
+            }
         }
     }
+
 
     //选课
     public static void choicesubject(String username, String password) {
         JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         Scanner sc = new Scanner(System.in);
         System.out.println("目前开设的课程有：");
-        String sql1 = "SELECT subject.suid 课程id, subject.suname 课程名称, teacher.name 教学老师\n" +
+        String sql1 = "SELECT subject.suid AS 课程id, subject.suname AS 课程名称, teacher.name AS 教学老师\n" +
                 "FROM subject\n" +
                 "JOIN teacher ON subject.tid = teacher.tid\n";
         List<Map<String, Object>> list = template.queryForList(sql1);
         for (Map<String, Object> stringObjectMap : list) {
             System.out.println(stringObjectMap);
         }
+
         String sql2 = "SELECT sid FROM student WHERE username = ?";
         Integer sid = template.queryForObject(sql2, Integer.class, username);
         System.out.println("输入课程id");
         int subjectid = sc.nextInt();
-        String sql3 = "INSERT INTO sandt (sid, suid)\n" +
-                "VALUES (?, ?)";
+
+        // 检查学生是否已经选过该课程
+        String sql4 = "SELECT COUNT(*) FROM sandt WHERE sid = ? AND suid = ?";
+        int count = template.queryForObject(sql4, Integer.class, sid, subjectid);
+        if (count > 0) {
+            System.out.println("您已经选过该课程，不允许重复选择！");
+            studentmenu(username, password);
+            return;
+        }
+
+        String sql3 = "INSERT INTO sandt (sid, suid) VALUES (?, ?)";
         template.update(sql3, sid, subjectid);
 
         System.out.println("选课成功！");
         studentmenu(username, password);
-
     }
 
     //退课

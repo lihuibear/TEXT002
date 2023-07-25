@@ -208,14 +208,14 @@ public class Teacher {
 
         System.out.println("输入要修改的课程id");
         int suid = sc.nextInt();
+        sc.nextLine();
         System.out.println("输入课程新名称");
         String new_name = sc.nextLine();
 
         String sql = "UPDATE subject SET suname = ? WHERE tid = ? AND suid = ?";
 
-        template.update(sql,new_name ,tid,suid);
+        template.update(sql,new_name,tid,suid);
         teachermenu(username, password);
     }
-
 
 }

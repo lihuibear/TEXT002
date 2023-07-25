@@ -68,9 +68,9 @@ public class logindemo {
                     System.out.println("学生登录成功");
                     // 进行学生相关操作
                     studentmenu(username, password);
-
-                    stmt.close();
-                    conn.close();
+                    jdbcUtils.close(stmt,conn);
+//                    stmt.close();
+//                    conn.close();
                     return;
                 } else {
                     flag++;
@@ -88,8 +88,9 @@ public class logindemo {
 
             System.out.println("登录失败次数过多，返回登录选择界面");
             menu();
-            stmt.close();
-            conn.close();
+            jdbcUtils.close(stmt,conn);
+//            stmt.close();
+//            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -130,8 +131,9 @@ public class logindemo {
                     // 进行学生相关操作
                     // ...
                     teachermenu(username, password);
-                    stmt.close();
-                    conn.close();
+                jdbcUtils.close(stmt,conn);
+//                    stmt.close();
+//                    conn.close();
                     return;
                 } else {
                     flag++;
@@ -149,8 +151,9 @@ public class logindemo {
 
             System.out.println("登录失败次数过多，返回登录选择界面");
             menu();
-            stmt.close();
-            conn.close();
+            jdbcUtils.close(stmt,conn);
+//            stmt.close();
+//            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
