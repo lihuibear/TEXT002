@@ -31,7 +31,8 @@ public class demo {
         }
         if (s.equals("2")) {
             enroll();
-        }if(s.equals("0")){
+        }
+        if (s.equals("0")) {
             System.exit(0);
         }
     }

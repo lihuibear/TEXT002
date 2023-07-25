@@ -26,9 +26,9 @@ public class logindemo {
         } else if (choice.equals("2")) {
             // 教师登录
             teacherLogin();
-        } else if (choice.equals("3")){
+        } else if (choice.equals("3")) {
             menu();
-        }else {
+        } else {
             System.out.println("输入错误，请重新选择");
             login(username, password);
         }
@@ -64,10 +64,10 @@ public class logindemo {
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
                     // 学生登录成功
-                    String sid = rs.getString("sid");
-                    System.out.println("学生登录成功，学号：" + sid);
+//                    String sid = rs.getString("sid");
+                    System.out.println("学生登录成功");
                     // 进行学生相关操作
-                    studentmenu(username,password);
+                    studentmenu(username, password);
 
                     stmt.close();
                     conn.close();
@@ -125,11 +125,11 @@ public class logindemo {
                 ResultSet rs = stmt.executeQuery();
                 if (rs.next()) {
                     // 学生登录成功
-                    String tid = rs.getString("tid");
-                    System.out.println("教师登录成功，工号：" + tid);
+//                    String tid = rs.getString("tid");
+                    System.out.println("教师登录成功");
                     // 进行学生相关操作
                     // ...
-                    teachermenu();
+                    teachermenu(username, password);
                     stmt.close();
                     conn.close();
                     return;

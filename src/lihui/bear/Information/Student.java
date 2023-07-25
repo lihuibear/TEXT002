@@ -3,6 +3,8 @@ package lihui.bear.Information;
 import lihui.bear.utils.jdbcUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.sql.Connection;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -13,10 +15,11 @@ import static lihui.bear.main.demo.menu;
 public class Student {
     public static void studentmenu(String username, String password) {
         Scanner sc = new Scanner(System.in);
+        System.out.println("=========欢迎进入学生端系统=========");
         System.out.println("1.个人信息查询");
         System.out.println("2.个人信息修改");
         System.out.println("3.账号密码修改");
-        System.out.println("4.课程管理");
+        System.out.println("4.选课情况");
         System.out.println("5.选课");
         System.out.println("6.退课");
         System.out.println("输入其他返回上一级菜单");
@@ -25,7 +28,7 @@ public class Student {
             switch (choice) {
                 case "1":
                     System.out.println("ceshi1");
-                    find(username);
+                    find(username, password);
                     break;
                 case "2":
                     System.out.println("ceshi2");
@@ -37,13 +40,16 @@ public class Student {
                     break;
                 case "4":
                     System.out.println("ceshi4");
-                    findsubject();
+                    findsubject(username, password);
+                    System.out.println("继续选择其他功能或输入其他返回上一级菜单");
                     break;
                 case "5":
                     System.out.println("ceshi5");
+                    choicesubject(username, password);
                     break;
                 case "6":
                     System.out.println("ceshi6");
+                    deletesubject(username, password);
                     break;
                 default:
                     menu();
@@ -52,13 +58,17 @@ public class Student {
     }
 
     //个人信息查询
-    public static void find(String username) {
+    public static void find(String username, String password) {
         JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
+        Scanner sc = new Scanner(System.in);
         String sql = "select username 账号,sid id,name 姓名,sex 性别,classname 班级 from student where username = ?";
 //        String sql = "select * from student where username = ?";
 //        String username = ;
         Map<String, Object> map = template.queryForMap(sql, username);
         System.out.println(map);
+        System.out.println("输入0返回上级目录");
+        String s = sc.nextLine();
+        studentmenu(username, password);
     }
 
     //个人信息修改
@@ -149,7 +159,68 @@ public class Student {
         }
     }
 
-    public static void findsubject(){
+    //选课情况
+    public static void findsubject(String username, String password) {
+        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
+
+        String sql = "SELECT student.name 学生姓名, subject.suid 课程id,subject.suname 课程,teacher.name 教师姓名 " +
+                "FROM student " +
+                "JOIN sandt ON student.sid = sandt.sid " +
+                "JOIN subject ON `subject`.suid = sandt.suid " +
+                "JOIN teacher ON subject.tid = teacher.tid " +
+                "WHERE student.username = ?";
+        List<Map<String, Object>> list = template.queryForList(sql, username);
+
+        for (Map<String, Object> stringObjectMap : list) {
+            System.out.println(stringObjectMap);
+        }
+    }
+
+    //选课
+    public static void choicesubject(String username, String password) {
+        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
+        Scanner sc = new Scanner(System.in);
+        System.out.println("目前开设的课程有：");
+        String sql1 = "SELECT subject.suid 课程id, subject.suname 课程名称, teacher.name 教学老师\n" +
+                "FROM subject\n" +
+                "JOIN teacher ON subject.tid = teacher.tid\n";
+        List<Map<String, Object>> list = template.queryForList(sql1);
+        for (Map<String, Object> stringObjectMap : list) {
+            System.out.println(stringObjectMap);
+        }
+        String sql2 = "SELECT sid FROM student WHERE username = ?";
+        Integer sid = template.queryForObject(sql2, Integer.class, username);
+        System.out.println("输入课程id");
+        int subjectid = sc.nextInt();
+        String sql3 = "INSERT INTO sandt (sid, suid)\n" +
+                "VALUES (?, ?)";
+        template.update(sql3, sid, subjectid);
+
+        System.out.println("选课成功！");
+        studentmenu(username, password);
 
     }
+
+    //退课
+    public static void deletesubject(String username, String password) {
+        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
+        Scanner sc = new Scanner(System.in);
+        System.out.println("目前您选择的有：");
+        findsubject(username, password);
+
+        String sql2 = "SELECT sid FROM student WHERE username = ?";
+        Integer sid = template.queryForObject(sql2, Integer.class, username);
+
+        System.out.println("输入您想要退的课程id");
+        int suid = sc.nextInt();
+
+        String sql = "DELETE " +
+                "FROM sandt " +
+                "WHERE sandt.suid = ? AND sandt.sid = ?";
+        template.update(sql, suid, sid);
+        System.out.println("退课成功！");
+        studentmenu(username, password);
+    }
+
 }
+

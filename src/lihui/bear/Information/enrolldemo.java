@@ -7,6 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Scanner;
 
+import static lihui.bear.main.demo.menu;
+
 public class enrolldemo {
 
     public static void enroll() {
@@ -69,6 +71,7 @@ public class enrolldemo {
 
             if (rows > 0) {
                 System.out.println("学生注册成功");
+                menu();
             } else {
                 System.out.println("学生注册失败");
             }
@@ -117,6 +120,7 @@ public class enrolldemo {
 
             if (rows > 0) {
                 System.out.println("教师注册成功");
+                menu();
             } else {
                 System.out.println("教师注册失败");
             }
