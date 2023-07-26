@@ -7,10 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import static lihui.bear.Information.logindemo.studentLogin;
 import static lihui.bear.main.demo.menu;
 
 public class Student {
+    private static final JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
+
     public static void studentmenu(String username, String password) {
         Scanner sc = new Scanner(System.in);
         System.out.println("=========欢迎进入学生端系统=========");
@@ -34,7 +35,7 @@ public class Student {
                     break;
                 case "3":
                     System.out.println("账号密码修改");
-                    newpassword(username, password);
+                    SaTPassword.newpassword(username, password, "student");
                     break;
                 case "4":
                     System.out.println("选课情况");
@@ -57,8 +58,6 @@ public class Student {
 
     //个人信息查询
     public static void find(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
-        Scanner sc = new Scanner(System.in);
         String sql = "select username 账号,sid id,name 姓名,sex 性别,classname 班级 from student where username = ?";
         Map<String, Object> map = template.queryForMap(sql, username);
         System.out.println(map);
@@ -67,14 +66,12 @@ public class Student {
 
     //个人信息修改
     public static void revise(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         Scanner sc = new Scanner(System.in);
         System.out.println("1.修改姓名");
         System.out.println("2.修改性别");
         System.out.println("3.修改班级");
-//        System.out.println("4.修改账号");
-//
         System.out.println("输入其他返回上一级菜单");
+
         while (true) {
             String choice = sc.nextLine();
             switch (choice) {
@@ -99,61 +96,13 @@ public class Student {
                     template.update(sql3, new_classname, username);
                     System.out.println("修改成功，请继续选择修改的内容或者退出回到上级菜单");
                     break;
-//                case "4":
-//                    String sql4 = "update student set username = ? where username = ?";
-//                    System.out.println("输入新的账户");
-//                    String new_username = sc.nextLine();
-//                    template.update(sql4, new_username, username);
-//                    System.out.println("修改成功，请继续选择修改的内容或者退出回到上级菜单");
-//                    break;
                 default:
                     studentmenu(username, password);
             }
         }
     }
 
-    //账号密码修改
-    public static void newpassword(String username, String password) {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("请输入当前密码");
-        String oldpassword = sc.nextLine();
-        int flag = 0;
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
-
-        while (!oldpassword.equals(password) && flag < 3) {
-            flag++;
-            System.out.println("密码错误，还剩" + (3 - flag) + "次尝试");
-            if (flag < 3) {
-                System.out.println("请重新输入学生密码：");
-                oldpassword = sc.nextLine();
-            }
-        }
-
-        if (oldpassword.equals(password)) {
-            System.out.println("请输入新的密码");
-            String new_password = sc.nextLine();
-            System.out.println("请再次输入新的密码");
-            String new_password2 = sc.nextLine();
-
-            if (new_password.equals(new_password2)) {
-                String sql = "update student set password = ? where username = ?";
-                template.update(sql, new_password, username);
-                System.out.println("修改成功，请返回上一界面重新登录");
-                studentLogin();
-            } else {
-                System.out.println("您前后输入的密码不一致，不可修改");
-                studentmenu(username, password);
-            }
-        } else {
-            System.out.println("失败次数过多，返回上一界面");
-            studentLogin();
-        }
-    }
-
-
-    //选课情况
     public static void findsubject(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
 
         String sql = "SELECT student.name 学生姓名, subject.suid 课程id, subject.suname 课程, teacher.name 教师姓名 " +
                 "FROM student " +
@@ -176,7 +125,7 @@ public class Student {
 
     //选课
     public static void choicesubject(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
+
         Scanner sc = new Scanner(System.in);
         System.out.println("目前开设的课程有：");
         String sql1 = "SELECT subject.suid AS 课程id, subject.suname AS 课程名称, teacher.name AS 教学老师\n" +
@@ -210,7 +159,6 @@ public class Student {
 
     //退课
     public static void deletesubject(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         Scanner sc = new Scanner(System.in);
         System.out.println("目前您选择的有：");
         findsubject(username, password);
@@ -228,6 +176,5 @@ public class Student {
         System.out.println("退课成功！");
         studentmenu(username, password);
     }
-
 }
 

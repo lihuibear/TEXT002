@@ -8,11 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import static lihui.bear.Information.logindemo.studentLogin;
-import static lihui.bear.Information.logindemo.teacherLogin;
 import static lihui.bear.main.demo.menu;
 
 public class Teacher {
+    private static final JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
+
     public static void teachermenu(String username, String password) {
         Scanner sc = new Scanner(System.in);
         System.out.println("=========欢迎进入教师端系统=========");
@@ -36,7 +36,7 @@ public class Teacher {
                     break;
                 case "3":
                     System.out.println("账号密码修改");
-                    newpassword(username, password);
+                    SaTPassword.newpassword(username, password, "teacher");
                     break;
                 case "4":
                     System.out.println("查看我的课程");
@@ -58,7 +58,6 @@ public class Teacher {
     }
 
     public static void find(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         String sql = "select username 账号,tid id,name 姓名,tel 手机号码 from teacher where username = ?";
 
         Map<String, Object> map = template.queryForMap(sql, username);
@@ -69,7 +68,6 @@ public class Teacher {
 
     //个人信息修改
     public static void revise(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         Scanner sc = new Scanner(System.in);
         System.out.println("1.修改姓名");
         System.out.println("2.修改电话号码");
@@ -90,24 +88,8 @@ public class Teacher {
                     System.out.println("输入新的11位电话号码");
 
                     long new_tel = 0;
-                    String new_tel_str;
-
-                    while (true) {
-                        try {
-                            new_tel = sc.nextLong();
-                        } catch (InputMismatchException e) {
-                            System.out.println("你输入的不是完全的数字，请重新输入：");
-                            sc.nextLine(); // 清除非数字输入，以免进入死循环
-                            continue; // 继续下一次循环
-                        }
-
-                        new_tel_str = String.valueOf(new_tel);
-                        if (new_tel_str.length() != 11) {
-                            System.out.println("电话号码必须为11位长度，请重新输入：");
-                        } else {
-                            break; // 电话号码输入正确，跳出循环
-                        }
-                    }
+                    String new_tel_str = null;
+                    tell(new_tel, new_tel_str);
 
                     template.update(sql2, new_tel_str, username);
                     System.out.println("修改成功，请继续选择修改的内容或者退出回到上级菜单");
@@ -117,47 +99,7 @@ public class Teacher {
         }
     }
 
-    //账号密码修改
-    public static void newpassword(String username, String password) {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("请输入当前密码");
-        String oldpassword = sc.nextLine();
-        int flag = 0;
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
-
-        while (!oldpassword.equals(password) && flag < 3) {
-            flag++;
-            System.out.println("密码错误，还剩" + (3 - flag) + "次尝试");
-            if (flag < 3) {
-                System.out.println("请重新输入学生密码：");
-                oldpassword = sc.nextLine();
-            }
-        }
-
-        if (oldpassword.equals(password)) {
-            System.out.println("请输入新的密码");
-            String new_password = sc.nextLine();
-            System.out.println("请再次输入新的密码");
-            String new_password2 = sc.nextLine();
-
-            if (new_password.equals(new_password2)) {
-                String sql = "update teacher set password = ? where username = ?";
-                template.update(sql, new_password, username);
-                System.out.println("修改成功，请返回上一界面重新登录");
-                teacherLogin();
-            } else {
-                System.out.println("您前后输入的密码不一致，不可修改");
-                teachermenu(username, password);
-            }
-        } else {
-            System.out.println("失败次数过多，返回上一界面");
-            teacherLogin();
-        }
-    }
-
-    //查看我的课程
     public static void findsubject(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
 
         String sql = "SELECT subject.suid AS 课程id, subject.suname AS 课程 " +
                 "FROM teacher " +
@@ -178,7 +120,6 @@ public class Teacher {
 
     //查看选课学生
     public static void findstudent(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         String sql = "SELECT subject.suid AS 课程id, subject.suname AS 课程, student.classname AS 学生班级, student.name AS 学生姓名 " +
                 "FROM teacher " +
                 "JOIN subject ON teacher.tid = subject.tid " +
@@ -203,7 +144,6 @@ public class Teacher {
 
     //修改课程信息
     public static void revisesubject(String username, String password) {
-        JdbcTemplate template = new JdbcTemplate(jdbcUtils.getDataSource());
         Scanner sc = new Scanner(System.in);
         System.out.println("您当前有的课有：");
         findsubject(username, password);
@@ -222,4 +162,22 @@ public class Teacher {
         teachermenu(username, password);
     }
 
+    public static void tell(long new_tel, String new_tel_str) {
+        Scanner sc = new Scanner(System.in);
+        while (true) {
+            try {
+                new_tel = sc.nextLong();
+            } catch (InputMismatchException e) {
+                System.out.println("你输入的不是完全的数字，请重新输入：");
+                sc.nextLine(); // 清除非数字输入，以免进入死循环
+                continue; // 继续下一次循环
+            }
+            new_tel_str = String.valueOf(new_tel);
+            if (new_tel_str.length() != 11) {
+                System.out.println("电话号码必须为11位长度，请重新输入：");
+            } else {
+                break; // 电话号码输入正确，跳出循环
+            }
+        }
+    }
 }

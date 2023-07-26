@@ -79,8 +79,9 @@ public class enrolldemo {
         String classname = sc.nextLine();
 
         String sql = "INSERT INTO student (sid,name,sex,classname,username,password) VALUES (null,?,?,?,?,?)";
+        PreparedStatement stmt = null;
         try {
-            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql);
             stmt.setString(1, name);
             stmt.setString(2, sex);
             stmt.setString(3, classname);
@@ -97,10 +98,11 @@ public class enrolldemo {
                 System.out.println("学生注册失败");
             }
             jdbcUtils.close(stmt, conn);
-//            stmt.close();
-//            conn.close();
+
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            jdbcUtils.close(stmt, conn);
         }
     }
 
@@ -147,9 +149,6 @@ public class enrolldemo {
         String password = sc.nextLine();
         System.out.println("姓名");
         String name = sc.nextLine();
-//        System.out.println("联系方式");
-//        long tel = sc.nextLong();
-
         System.out.println("输入新的11位电话号码");
 
         long tel = 0;
@@ -172,8 +171,9 @@ public class enrolldemo {
             }
         }
         String sql = "INSERT INTO teacher (tid, name, tel, username, password) VALUES (null, ?, ?, ?, ?)";
+        PreparedStatement stmt = null;
         try {
-            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt = conn.prepareStatement(sql);
             stmt.setString(1, name);
             stmt.setLong(2, tel);
             stmt.setString(3, username);
@@ -187,11 +187,11 @@ public class enrolldemo {
             } else {
                 System.out.println("教师注册失败");
             }
-            jdbcUtils.close(stmt, conn);
-//            stmt.close();
-//            conn.close();
+
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            jdbcUtils.close(stmt, conn);
         }
     }
 }

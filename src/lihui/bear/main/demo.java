@@ -21,7 +21,7 @@ public class demo {
         String usename = null;
         String pawssord = null;
 
-        while (!s.equals("1") && !s.equals("2")&&!s.equals("0")) {
+        while (!s.equals("1") && !s.equals("2") && !s.equals("0")) {
             System.out.println("输入错误，请重新输入");
             s = sc.nextLine();
         }
