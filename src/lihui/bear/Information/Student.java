@@ -125,7 +125,6 @@ public class Student {
 
     //选课
     public static void choicesubject(String username, String password) {
-
         Scanner sc = new Scanner(System.in);
         System.out.println("目前开设的课程有：");
         String sql1 = "SELECT subject.suid AS 课程id, subject.suname AS 课程名称, teacher.name AS 教学老师\n" +
@@ -140,6 +139,21 @@ public class Student {
         Integer sid = template.queryForObject(sql2, Integer.class, username);
         System.out.println("输入课程id");
         int subjectid = sc.nextInt();
+
+        boolean flag = false;
+        for (Map<String, Object> subject : list) {
+            int subjectid2 = (int) subject.get("课程id");
+            if (subjectid2 == subjectid) {
+                flag = true;
+                break;
+            }
+        }
+
+        if (!flag) {
+            System.out.println("选择的课程ID不存在，请重新选择！");
+            studentmenu(username, password);
+            return;
+        }
 
         // 检查学生是否已经选过该课程
         String sql4 = "SELECT COUNT(*) FROM sandt WHERE sid = ? AND suid = ?";
@@ -157,6 +171,7 @@ public class Student {
         studentmenu(username, password);
     }
 
+
     //退课
     public static void deletesubject(String username, String password) {
         Scanner sc = new Scanner(System.in);
@@ -166,15 +181,22 @@ public class Student {
         String sql2 = "SELECT sid FROM student WHERE username = ?";
         Integer sid = template.queryForObject(sql2, Integer.class, username);
 
-        System.out.println("输入您想要退的课程id");
+        System.out.println("输入您想要退的课程id：");
         int suid = sc.nextInt();
 
-        String sql = "DELETE " +
-                "FROM sandt " +
-                "WHERE sandt.suid = ? AND sandt.sid = ?";
-        template.update(sql, suid, sid);
-        System.out.println("退课成功！");
+        String sql3 = "SELECT COUNT(*) FROM sandt WHERE suid = ? AND sid = ?";
+        int count = template.queryForObject(sql3, Integer.class, suid, sid);
+
+        if (count > 0) {
+            String sql = "DELETE FROM sandt WHERE suid = ? AND sid = ?";
+            template.update(sql, suid, sid);
+            System.out.println("退课成功！");
+        } else {
+            System.out.println("您未选修该课程，无法进行退课！");
+        }
+
         studentmenu(username, password);
     }
+
 }
 

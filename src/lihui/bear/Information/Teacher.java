@@ -149,18 +149,26 @@ public class Teacher {
         findsubject(username, password);
         String sql2 = "SELECT tid FROM teacher WHERE username = ?";
         Integer tid = template.queryForObject(sql2, Integer.class, username);
-
-        System.out.println("输入要修改的课程id");
+        System.out.println("请输入要修改的课程id：");
         int suid = sc.nextInt();
         sc.nextLine();
-        System.out.println("输入课程新名称");
-        String new_name = sc.nextLine();
 
-        String sql = "UPDATE subject SET suname = ? WHERE tid = ? AND suid = ?";
 
-        template.update(sql, new_name, tid, suid);
+        String sql3 = "SELECT COUNT(*) FROM subject WHERE tid = ? AND suid = ?";
+        int count = template.queryForObject(sql3, Integer.class, tid, suid);
+        if (count > 0) {
+            System.out.println("请输入课程新名称：");
+            String new_name = sc.nextLine();
+            String sql = "UPDATE subject SET suname = ? WHERE tid = ? AND suid = ?";
+
+            template.update(sql, new_name, tid, suid);
+            System.out.println("课程修改成功！");
+        } else {
+            System.out.println("您输入的课程id不存在！");
+        }
         teachermenu(username, password);
     }
+
 
     public static void tell(long new_tel, String new_tel_str) {
         Scanner sc = new Scanner(System.in);
